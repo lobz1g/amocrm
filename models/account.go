@@ -39,13 +39,13 @@ type (
 			TimeFull string `json:"time_full"`
 		} `json:"date_pattern"`
 		CurrentUser int `json:"current_user"`
-		Embedded struct {
+		Embedded    struct {
 			Users map[string]struct {
 				Id       int
 				Name     string
 				Login    string
 				Language string
-				GroupId  int `json:"group_id"`
+				GroupId  int  `json:"group_id"`
 				IsActive bool `json:"is_active"`
 				IsFree   bool `json:"is_free"`
 				IsAdmin  bool `json:"is_admin"`

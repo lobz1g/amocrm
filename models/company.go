@@ -125,5 +125,3 @@ func (c Cmpn) Update(cmpn *company) error {
 	}
 	return nil
 }
-
-
