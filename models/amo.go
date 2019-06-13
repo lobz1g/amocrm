@@ -5,8 +5,6 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-
-	"github.com/lobz1g/amocrm"
 )
 
 const limit = 500
@@ -50,7 +48,7 @@ func (c *amoSettings) open() error {
 		"USER_HASH":  {c.Cfg.Key},
 	}
 
-	time.Sleep(amocrm.Delay)
+	time.Sleep(delay)
 	resp, err := c.Client.PostForm(getUrl(c.Cfg.Domain, "/private/api/auth.php?type=json"), values)
 	if err != nil {
 		return err
