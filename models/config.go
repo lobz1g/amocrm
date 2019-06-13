@@ -1,10 +1,11 @@
 package models
 
 import (
-	"../logHandler"
 	"encoding/json"
 	"os"
 )
+
+const PATH_TO_CONFIG = "./config/amocrm.json"
 
 type config struct {
 	Domain string `json:"domain"`
@@ -12,18 +13,18 @@ type config struct {
 	Key    string `json:"key"`
 }
 
-func getConfig() config {
-	file, err := os.Open("./config/amocrm.json")
+func getConfig() (*config, error) {
+	file, err := os.Open(PATH_TO_CONFIG)
 	defer file.Close()
 	if err != nil {
-		defer logHandler.WriteLogFile(err, "config", "getConfig()")
+		return nil, err
 	}
 
-	var cfg config
+	var cfg *config
 	jsonParser := json.NewDecoder(file)
 	err = jsonParser.Decode(&cfg)
 	if err != nil {
-		defer logHandler.WriteLogFile(err, "config", "jsonParser.Decode()")
+		return nil, err
 	}
-	return cfg
+	return cfg, nil
 }

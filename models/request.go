@@ -1,55 +1,57 @@
 package models
 
 import (
-	"../logHandler"
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type (
-	requestInterface interface {
-		Get(address string) []byte
-		Post(address string, data interface{}) []byte
-	}
-
-	request struct {
-		requestInterface
-	}
+	request struct{}
 )
 
-func (request) Get(address string) []byte {
-	resp, err := client.Client.Get(getUrl(client.Cfg, address))
-	if err != nil {
-		defer logHandler.WriteLogFile(err, "request", "Get()")
-	}
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		defer logHandler.WriteLogFile(err, "request", "ReadAll()")
-	}
+func (r request) Get(address string) ([]byte, error) {
+	resp, err := client.Client.Get(getUrl(client.Cfg.Domain, address))
 	defer resp.Body.Close()
-
-	return b
-}
-
-func (request) Post(address string, data []byte) []byte {
-	req, err := http.NewRequest("POST", getUrl(client.Cfg, address), bytes.NewBuffer(data))
 	if err != nil {
-		defer logHandler.WriteLogFile(err, "request", "NewRequest()")
+		return nil, err
 	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Client.Do(req)
-	if err != nil {
-		defer logHandler.WriteLogFile(err, "request", "Do()")
-	}
-	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		defer logHandler.WriteLogFile(err, "request", "ReadAll()")
+		return nil, err
 	}
 
-	return body
+	if resp.StatusCode != 200 {
+		return nil, errors.New("status code: " + strconv.Itoa(resp.StatusCode) + "\nerror: " + string(body))
+	}
+
+	return body, nil
+}
+
+func (r request) Post(address string, data []byte) ([]byte, error) {
+	req, err := http.NewRequest("POST", getUrl(client.Cfg.Domain, address), bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, errors.New("status code: " + strconv.Itoa(resp.StatusCode) + "\nerror: " + string(body))
+	}
+
+	return body, nil
 }

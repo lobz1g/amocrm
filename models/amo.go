@@ -1,46 +1,72 @@
 package models
 
 import (
-	"../logHandler"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
+
+	"github.com/lobz1g/amocrm"
 )
 
-type amo struct {
-	Account account
-	Company company
-	Contact contact
-	Lead    lead
-	Note    note
-	Task    task
-	Service service
-}
+const limit = 500
+const delay = 25 * time.Millisecond
 
 type amoSettings struct {
-	Cfg    config
+	Cfg    *config
 	Client http.Client
 }
 
-var client amoSettings
+var client *amoSettings
 
-//todo: add error handler
-func New() amo {
-	client.Cfg = getConfig()
+func OpenConnection() error {
+	var err error
+	client, err = newAmoSettings()
+	if err != nil {
+		return err
+	}
+	err = client.open()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func newAmoSettings() (*amoSettings, error) {
+	cfg, err := getConfig()
+	if err != nil {
+		return nil, err
+	}
+	c := &amoSettings{Cfg: cfg, Client: http.Client{}}
+	return c, nil
+}
+
+func (c *amoSettings) open() error {
 	jar := newJar()
-	client.Client = http.Client{Jar: jar, Timeout: 15 * time.Minute, CheckRedirect: nil, Transport: nil}
+	c.Client = http.Client{Jar: jar, Timeout: 15 * time.Minute, CheckRedirect: nil, Transport: nil}
 
 	values := url.Values{
-		"USER_LOGIN": {client.Cfg.Login},
-		"USER_HASH":  {client.Cfg.Key},
+		"USER_LOGIN": {c.Cfg.Login},
+		"USER_HASH":  {c.Cfg.Key},
 	}
 
-	resp, err := client.Client.PostForm(getUrl(client.Cfg, "/private/api/auth.php?type=json"), values)
+	time.Sleep(amocrm.Delay)
+	resp, err := c.Client.PostForm(getUrl(c.Cfg.Domain, "/private/api/auth.php?type=json"), values)
 	if err != nil {
-		defer logHandler.WriteLogFile(err, "amo", "New()")
+		return err
 	}
-	//todo: add checking error
-	_ = resp.Body.Close()
+	defer resp.Body.Close()
+	return nil
+}
 
-	return amo{}
+func getStrFromArr(arr []int) string {
+	tmp := ""
+	for _, value := range arr {
+		if tmp != "" {
+			tmp += ", "
+		}
+		tmp += strconv.Itoa(value)
+	}
+
+	return tmp
 }

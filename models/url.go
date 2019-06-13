@@ -1,23 +1,19 @@
 package models
 
-const accountUrl = "/api/v2/account"
+import (
+	"strconv"
+)
+
+const accountUrl = "/api/v2/account?with=users,pipelines,groups,note_types,task_types,custom_fields"
 const companyUrl = "/api/v2/companies"
-const contactUrl = "/api/v2/contacts"
 const leadUrl = "/api/v2/leads"
 const taskUrl = "/api/v2/tasks"
+const noteUrl = "/api/v2/notes"
 
-func constructUrlWithId(url, id string) string {
-	return url + "?id=" + id
+func constructUrlWithId(url string, id int) string {
+	return url + "?id=" + strconv.Itoa(id)
 }
 
-func constructUrlWithResponsible(url, id string) string {
-	return url + "?responsible_user_id=" + id
-}
-
-func constructUrlWithElementId(url, id string) string {
-	return url + "?element_id=" + id
-}
-
-func getUrl(cfg config, url string) string {
-	return "https://" + cfg.Domain + ".amocrm.ru" + url
+func getUrl(domain string, url string) string {
+	return "https://" + domain + ".amocrm.ru" + url
 }

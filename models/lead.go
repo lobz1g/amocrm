@@ -6,83 +6,143 @@ import (
 )
 
 type (
-	lead struct {
-		generalInterfaces
-		getInterface
-		updateInterface
+	Ld struct {
 		request request
 	}
 
-	leadData struct {
-		Id                int    `json:"id"`
-		Name              string `json:"name"`
-		ResponsibleUserId int    `json:"responsible_user_id"`
-		CreatedBy         int    `json:"created_by"`
-		CreatedAt         int64  `json:"created_at"`
-		UpdatedAt         int64  `json:"updated_at"`
-		ClosedAt          int64  `json:"closed_at"`
-		ClosestTaskAt     int64  `json:"closest_task_at"`
-		AccountId         int    `json:"account_id"`
-		UpdatedBy         int    `json:"updated_by"`
-		GroupId           int    `json:"group_id"`
-		IsDeleted         bool   `json:"is_deleted"`
-		StatusId          int    `json:"status_id"`
-		Sale              int    `json:"sale"`
+	lead struct {
+		Id                int
+		Name              string
+		ResponsibleUserId int   `json:"responsible_user_id"`
+		CreatedBy         int   `json:"created_by"`
+		CreatedAt         int64 `json:"created_at"`
+		UpdatedAt         int64 `json:"updated_at"`
+		AccountId         int   `json:"account_id"`
+		PipelineId        int   `json:"pipeline_id"`
+		StatusId          int   `json:"status_id"`
+		IsDeleted         bool  `json:"is_deleted"`
 		MainContact       struct {
-			Id int `json:"id"`
-		} `json:"main_contact"`
-		Contacts struct {
-			Id []int `json:"id"`
-		} `json:"contacts"`
-		CustomFields []CustomField `json:"custom_fields"`
-		Company      struct {
-			Id int `json:"id"`
-		} `json:"company"`
-		Tags struct {
-			Id   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"tags"`
+			Id int
+		}
+		GroupId int `json:"group_id"`
+		Company struct {
+			Id   int
+			Name string
+		}
+		ClosedAt      int           `json:"closed_at"`
+		ClosestTaskAt int           `json:"closest_task_at"`
+		CustomFields  []customField `json:"custom_fields"`
+		Contacts      struct {
+			Id []int
+		}
+		Sale         int
+		LossReasonId int `json:"loss_reason_id"`
+		Pipeline     struct {
+			Id int
+		}
 	}
 
 	allLeads struct {
 		Embedded struct {
-			Items []leadData `json:"items"`
+			Items []*lead
 		} `json:"_embedded"`
 	}
 )
 
-func (l lead) GetAll() []byte {
-	var leads allLeads
-	resultJson := l.request.Get(leadUrl)
-	//todo: add checking error
-	_ = json.Unmarshal(resultJson, &leads)
-	result, _ := json.Marshal(leads.Embedded.Items)
-	return result
+func (l Ld) Create() *lead {
+	return &lead{}
 }
 
-func (l lead) GetById(id int) []byte {
-	var leads allLeads
-	url := constructUrlWithId(leadUrl, strconv.Itoa(id))
-	resultJson := l.request.Get(url)
-	//todo: add checking error
-	_ = json.Unmarshal(resultJson, &leads)
-	result, _ := json.Marshal(leads.Embedded.Items[0])
-	return result
+func (l Ld) All() ([]*lead, error) {
+	leads := allLeads{}
+	for i := 0; ; i++ {
+		var tmpLeads allLeads
+		resultJson, err := l.request.Get(leadUrl + "?limit_rows=" + strconv.Itoa(limit) + "&limit_offset=" + strconv.Itoa(i*limit))
+		if err != nil {
+			return nil, err
+		}
+		json.Unmarshal(resultJson, &tmpLeads)
+		leads.Embedded.Items = append(leads.Embedded.Items, tmpLeads.Embedded.Items...)
+		if len(tmpLeads.Embedded.Items) < 500 {
+			break
+		}
+	}
+
+	return leads.Embedded.Items, nil
 }
 
-func (l lead) GetByResponsibleUser(id int) []byte {
+func (l Ld) Id(id int) (*lead, error) {
 	var leads allLeads
-	url := constructUrlWithResponsible(leadUrl, strconv.Itoa(id))
-	resultJson := l.request.Get(url)
-	//todo: add checking error
-	_ = json.Unmarshal(resultJson, &leads)
-	result, _ := json.Marshal(leads.Embedded.Items)
-	return result
+	url := constructUrlWithId(leadUrl, id)
+	resultJson, err := l.request.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(resultJson, &leads)
+	return leads.Embedded.Items[0], nil
 }
 
-//todo: add new lead
+func (l Ld) Add(ld *lead) (int, error) {
+	data := map[string]interface{}{}
+	data["name"] = ld.Name
+	if ld.ResponsibleUserId != 0 {
+		data["responsible_user_id"] = ld.ResponsibleUserId
+	}
+	if ld.StatusId != 0 {
+		data["status_id"] = ld.StatusId
+	}
+	if ld.PipelineId != 0 {
+		data["pipeline_id"] = ld.PipelineId
+	}
+	if ld.Sale != 0 {
+		data["sale"] = ld.Sale
+	}
+	if ld.Company.Id != 0 {
+		data["company_id"] = ld.Company.Id
+	}
+	if len(ld.Contacts.Id) != 0 {
+		data["contacts_id"] = getStrFromArr(ld.Contacts.Id)
+	}
+	if len(ld.CustomFields) != 0 {
+		data["custom_fields"] = ld.CustomFields
+	}
 
-func (l lead) Update(data []byte) []byte {
-	resultJson := l.request.Post(leadUrl, data)
-	return resultJson
+	fullData := map[string][]interface{}{"add": {data}}
+	jsonData, _ := json.Marshal(fullData)
+
+	resp, err := l.request.Post(leadUrl, jsonData)
+	if err != nil {
+		return 0, err
+	}
+	var newLead allLeads
+	json.Unmarshal(resp, &newLead)
+	return newLead.Embedded.Items[0].Id, nil
+}
+
+func (l Ld) Update(ld *lead) error {
+	data := map[string]interface{}{}
+	data["id"] = ld.Id
+	data["name"] = ld.Name
+	data["status_id"] = ld.StatusId
+	data["pipeline_id"] = ld.PipelineId
+	data["sale"] = ld.Sale
+	data["updated_at"] = ld.UpdatedAt + 1
+	if ld.Company.Id != 0 {
+		data["company_id"] = ld.Company.Id
+	}
+	data["responsible_user_id"] = ld.ResponsibleUserId
+	data["custom_fields"] = ld.CustomFields
+	data["created_by"] = ld.CreatedBy
+	if len(ld.Contacts.Id) != 0 {
+		data["contacts_id"] = getStrFromArr(ld.Contacts.Id)
+	}
+
+	fullData := map[string][]interface{}{"update": {data}}
+	jsonData, _ := json.Marshal(fullData)
+
+	_, err := l.request.Post(leadUrl, jsonData)
+	if err != nil {
+		return err
+	}
+	return nil
 }
