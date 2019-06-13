@@ -1,4 +1,4 @@
-# amocrm
+# AmoCRM
 
 Клиент для работы с api AmoCRM
 
