@@ -26,7 +26,7 @@ go get -u github.com/lobz1g/amocrm
    }
 ```
 
-#### Получить компанию по ID
+#### Получить компанию/сделку/задачу по ID
 ```go
    api := amocrm.NewAmo("YOUR_LOGIN", "YOUR_API_KEY", "YOUR_DOMAIN")
 
@@ -37,7 +37,7 @@ go get -u github.com/lobz1g/amocrm
    fmt.Println(comp)
 ```
 
-#### Добавление компании
+#### Добавление компании/сделки/задачи
 ```go
     api := amocrm.NewAmo("YOUR_LOGIN", "YOUR_API_KEY", "YOUR_DOMAIN")
     
@@ -50,7 +50,7 @@ go get -u github.com/lobz1g/amocrm
     fmt.Println(id)
 ```
 
-#### Обновление компании
+#### Обновление компании/сделки/задачи
 ```go
     api := amocrm.NewAmo("YOUR_LOGIN", "YOUR_API_KEY", "YOUR_DOMAIN")
     
