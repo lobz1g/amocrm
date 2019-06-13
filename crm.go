@@ -12,6 +12,7 @@ type amo struct {
 	Note    models.Nt
 }
 
-func NewAmo() *amo {
+func NewAmo(login, key, domain string) *amo {
+	models.OpenConnection(login, key, domain)
 	return &amo{}
 }

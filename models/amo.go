@@ -10,33 +10,31 @@ import (
 const limit = 500
 const delay = 25 * time.Millisecond
 
-type amoSettings struct {
-	Cfg    *config
-	Client http.Client
-}
+type (
+	amoSettings struct {
+		Cfg    *config
+		Client http.Client
+	}
+
+	config struct {
+		Domain string `json:"domain"`
+		Login  string `json:"login"`
+		Key    string `json:"key"`
+	}
+)
 
 var client *amoSettings
 
-func OpenConnection() error {
-	var err error
-	client, err = newAmoSettings()
-	if err != nil {
-		return err
-	}
-	err = client.open()
+func OpenConnection(login, key, domain string) error {
+	client.Cfg.Login = login
+	client.Cfg.Key = key
+	client.Cfg.Domain = domain
+
+	err := client.open()
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func newAmoSettings() (*amoSettings, error) {
-	cfg, err := getConfig()
-	if err != nil {
-		return nil, err
-	}
-	c := &amoSettings{Cfg: cfg, Client: http.Client{}}
-	return c, nil
 }
 
 func (c *amoSettings) open() error {
