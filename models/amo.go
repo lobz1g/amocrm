@@ -26,9 +26,11 @@ type (
 var client *amoSettings
 
 func OpenConnection(login, key, domain string) error {
-	client.Cfg.Login = login
-	client.Cfg.Key = key
-	client.Cfg.Domain = domain
+	client.Cfg = &config{
+		Domain: domain,
+		Key:    key,
+		Login:  login,
+	}
 
 	err := client.open()
 	if err != nil {
