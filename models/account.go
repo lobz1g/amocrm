@@ -107,7 +107,7 @@ type (
 )
 
 func (a Acc) Get() (*account, error) {
-	resultJson, err := a.request.Get(accountUrl)
+	resultJson, err := a.request.get(accountUrl)
 	if err != nil {
 		return nil, err
 	}

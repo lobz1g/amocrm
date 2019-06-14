@@ -88,7 +88,7 @@ func (l Ld) multiplyRequest(url string) ([]*lead, error) {
 	// this loop count necessary offset and request data again
 	for i := 0; ; i++ {
 		var tmpLeads allLeads
-		resultJson, err := l.request.Get(constructUrlWithOffset(url, i))
+		resultJson, err := l.request.get(constructUrlWithOffset(url, i))
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +107,7 @@ func (l Ld) multiplyRequest(url string) ([]*lead, error) {
 func (l Ld) Id(id int) (*lead, error) {
 	var leads allLeads
 	url := constructUrlWithId(leadUrl, id)
-	resultJson, err := l.request.Get(url)
+	resultJson, err := l.request.get(url)
 	if err != nil {
 		return nil, err
 	}

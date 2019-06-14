@@ -45,7 +45,7 @@ func (t Tsk) All() ([]*task, error) {
 	tasks := allTasks{}
 	for i := 0; ; i++ {
 		var tmpTasks allTasks
-		resultJson, err := t.request.Get(taskUrl + "?limit_rows=" + strconv.Itoa(limit) + "&limit_offset=" + strconv.Itoa(i*limit))
+		resultJson, err := t.request.get(taskUrl + "?limit_rows=" + strconv.Itoa(limit) + "&limit_offset=" + strconv.Itoa(i*limit))
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +62,7 @@ func (t Tsk) All() ([]*task, error) {
 func (t Tsk) Id(id int) (*task, error) {
 	var tasks allTasks
 	url := constructUrlWithId(taskUrl, id)
-	resultJson, err := t.request.Get(url)
+	resultJson, err := t.request.get(url)
 	if err != nil {
 		return nil, err
 	}

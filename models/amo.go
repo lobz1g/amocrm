@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -54,6 +55,9 @@ func (c *amoSettings) open() error {
 	resp, err := c.Client.PostForm(getUrl(authUrl), values)
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode != 200 {
+		return errors.New(resp.Status)
 	}
 	defer resp.Body.Close()
 	return nil

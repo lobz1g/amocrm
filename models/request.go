@@ -5,14 +5,13 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
 type (
 	request struct{}
 )
 
-func (r request) Get(address string) ([]byte, error) {
+func (r request) get(address string) ([]byte, error) {
 	resp, err := client.Client.Get(getUrl(address))
 	defer resp.Body.Close()
 	if err != nil {
@@ -25,7 +24,7 @@ func (r request) Get(address string) ([]byte, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, errors.New("status code: " + strconv.Itoa(resp.StatusCode) + "\nerror: " + string(body))
+		return nil, errors.New(resp.Status)
 	}
 
 	return body, nil
@@ -50,7 +49,7 @@ func (r request) Post(address string, data []byte) ([]byte, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, errors.New("status code: " + strconv.Itoa(resp.StatusCode) + "\nerror: " + string(body))
+		return nil, errors.New(resp.Status)
 	}
 
 	return body, nil

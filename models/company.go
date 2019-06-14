@@ -66,7 +66,7 @@ func (c Cmpn) multiplyRequest(url string) ([]*company, error) {
 	// this loop count necessary offset and request data again
 	for i := 0; ; i++ {
 		var tmpCompanies allCompanies
-		resultJson, err := c.request.Get(constructUrlWithOffset(url, i))
+		resultJson, err := c.request.get(constructUrlWithOffset(url, i))
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +85,7 @@ func (c Cmpn) multiplyRequest(url string) ([]*company, error) {
 func (c Cmpn) Id(id int) (*company, error) {
 	var companies allCompanies
 	url := constructUrlWithId(companyUrl, id)
-	resultJson, err := c.request.Get(url)
+	resultJson, err := c.request.get(url)
 	if err != nil {
 		return nil, err
 	}
