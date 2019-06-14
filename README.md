@@ -65,6 +65,18 @@ go get -u github.com/lobz1g/amocrm
     }
 ```
 
+### Аккаунт
+#### Получить всю информацию об аккаунте
+```go
+    api := amocrm.NewAmo(login, key, domain)
+    
+    acc, err := api.Account.Get()
+    if err != nil {
+        log.Println(err)
+    }
+    fmt.Println(acc)
+```
+
 ### Компания
 #### Получить все компании по отвественному
 ```go
@@ -80,17 +92,34 @@ go get -u github.com/lobz1g/amocrm
     }
 ```
 
-### Аккаунт
-#### Получить всю информацию об аккаунте
+### Сделка
+#### Получить все сделки по отвественному
 ```go
-    api := amocrm.NewAmo(login, key, domain)
+    api := amocrm.NewAmo("YOUR_LOGIN", "YOUR_API_KEY", "YOUR_DOMAIN")
     
-    acc, err := api.Account.Get()
+    leads, err := api.Lead.Responsible(11234)
     if err != nil {
-        log.Println(err)
+      log.Println(err)
     }
-    fmt.Println(acc)
+    
+    for _, value := range leads {
+      fmt.Println(value)
+    }
 ```
+#### Получить все сделки по статусу
+```go
+    api := amocrm.NewAmo("YOUR_LOGIN", "YOUR_API_KEY", "YOUR_DOMAIN")
+    
+    leads, err := api.Lead.Status(1123456)
+    if err != nil {
+      log.Println(err)
+    }
+    
+    for _, value := range leads {
+      fmt.Println(value)
+    }
+```
+
 ### Задачи
 #### Закрыть задачу
 ```go
