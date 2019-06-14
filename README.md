@@ -65,6 +65,21 @@ go get -u github.com/lobz1g/amocrm
     }
 ```
 
+### Компания
+#### Получить все компании по отвественному
+```go
+    api := amocrm.NewAmo("YOUR_LOGIN", "YOUR_API_KEY", "YOUR_DOMAIN")
+    
+    companies, err := api.Company.Responsible(11234)
+    if err != nil {
+      log.Println(err)
+    }
+    
+    for _, value := range companies {
+      fmt.Println(value)
+    }
+```
+
 ### Аккаунт
 #### Получить всю информацию об аккаунте
 ```go
