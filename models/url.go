@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+const authUrl = "/private/api/auth.php?type=json"
 const accountUrl = "/api/v2/account?with=users,pipelines,groups,note_types,task_types,custom_fields"
 const companyUrl = "/api/v2/companies"
 const leadUrl = "/api/v2/leads"
@@ -19,6 +20,10 @@ func constructUrlWithResponsible(url string, id int) string {
 	return url + "?responsible_user_id=" + strconv.Itoa(id)
 }
 
+func constructUrlWithStatus(url string, id int) string {
+	return url + "?responsible_user_id=" + strconv.Itoa(id)
+}
+
 func constructUrlWithOffset(url string, rows int) string {
 	var newUrl string
 	if strings.Contains(url, "?") {
@@ -30,6 +35,6 @@ func constructUrlWithOffset(url string, rows int) string {
 	return newUrl
 }
 
-func getUrl(domain string, url string) string {
-	return "https://" + domain + ".amocrm.ru" + url
+func getUrl(url string) string {
+	return "https://" + client.Cfg.Domain + ".amocrm.ru" + url
 }

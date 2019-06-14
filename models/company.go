@@ -47,24 +47,7 @@ func (c Cmpn) Create() *company {
 //    api := amocrm.NewAmo("login", "key", "domain")
 //    allCompanies, _ := api.Company.All()
 func (c Cmpn) All() ([]*company, error) {
-	companies := allCompanies{}
-	// API returns only 500 rows per request
-	// this loop count necessary offset and request data again
-	for i := 0; ; i++ {
-		var tmpCompanies allCompanies
-		resultJson, err := c.request.Get(constructUrlWithOffset(companyUrl, i))
-		if err != nil {
-			return nil, err
-		}
-		json.Unmarshal(resultJson, &tmpCompanies)
-		// sets current data after request to general slice
-		companies.Embedded.Items = append(companies.Embedded.Items, tmpCompanies.Embedded.Items...)
-		if len(tmpCompanies.Embedded.Items) < 500 {
-			break
-		}
-	}
-
-	return companies.Embedded.Items, nil
+	return c.multiplyRequest(companyUrl)
 }
 
 // Method gets all companies by responsible from API AmoCRM
@@ -73,12 +56,16 @@ func (c Cmpn) All() ([]*company, error) {
 //    api := amocrm.NewAmo("login", "key", "domain")
 //    allCompaniesByResponsible, _ := api.Company.Responsible(12345)
 func (c Cmpn) Responsible(id int) ([]*company, error) {
+	url := constructUrlWithResponsible(companyUrl, id)
+	return c.multiplyRequest(url)
+}
+
+func (c Cmpn) multiplyRequest(url string) ([]*company, error) {
 	companies := allCompanies{}
 	// API returns only 500 rows per request
 	// this loop count necessary offset and request data again
 	for i := 0; ; i++ {
 		var tmpCompanies allCompanies
-		url := constructUrlWithResponsible(companyUrl, id)
 		resultJson, err := c.request.Get(constructUrlWithOffset(url, i))
 		if err != nil {
 			return nil, err

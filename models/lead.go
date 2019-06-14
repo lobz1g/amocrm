@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"strconv"
 )
 
 type (
@@ -49,19 +48,52 @@ type (
 	}
 )
 
+// Method creates empty struct
 func (l Ld) Create() *lead {
 	return &lead{}
 }
 
+// Method gets all leads from API AmoCRM
+//
+// Example
+//    api := amocrm.NewAmo("login", "key", "domain")
+//    allLeads, _ := api.Lead.All()
 func (l Ld) All() ([]*lead, error) {
+	return l.multiplyRequest(leadUrl)
+}
+
+// Method gets all leads by responsible from API AmoCRM
+//
+// Example
+//    api := amocrm.NewAmo("login", "key", "domain")
+//    leads, _ := api.Lead.Responsible(12345)
+func (l Ld) Responsible(id int) ([]*lead, error) {
+	url := constructUrlWithResponsible(leadUrl, id)
+	return l.multiplyRequest(url)
+}
+
+// Method gets all leads by status from API AmoCRM
+//
+// Example
+//    api := amocrm.NewAmo("login", "key", "domain")
+//    leads, _ := api.Lead.Status(12345)
+func (l Ld) Status(id int) ([]*lead, error) {
+	url := constructUrlWithStatus(leadUrl, id)
+	return l.multiplyRequest(url)
+}
+
+func (l Ld) multiplyRequest(url string) ([]*lead, error) {
 	leads := allLeads{}
+	// API returns only 500 rows per request
+	// this loop count necessary offset and request data again
 	for i := 0; ; i++ {
 		var tmpLeads allLeads
-		resultJson, err := l.request.Get(leadUrl + "?limit_rows=" + strconv.Itoa(limit) + "&limit_offset=" + strconv.Itoa(i*limit))
+		resultJson, err := l.request.Get(constructUrlWithOffset(url, i))
 		if err != nil {
 			return nil, err
 		}
 		json.Unmarshal(resultJson, &tmpLeads)
+		// sets current data after request to general slice
 		leads.Embedded.Items = append(leads.Embedded.Items, tmpLeads.Embedded.Items...)
 		if len(tmpLeads.Embedded.Items) < 500 {
 			break
@@ -71,6 +103,7 @@ func (l Ld) All() ([]*lead, error) {
 	return leads.Embedded.Items, nil
 }
 
+// Method gets only one row by ID
 func (l Ld) Id(id int) (*lead, error) {
 	var leads allLeads
 	url := constructUrlWithId(leadUrl, id)
@@ -82,6 +115,15 @@ func (l Ld) Id(id int) (*lead, error) {
 	return leads.Embedded.Items[0], nil
 }
 
+// Note:
+//    Field `Name` is required
+//    Return id of new lead
+//
+// Example:
+//    api := amocrm.NewAmo("login", "key", "domain")
+//    lead := api.Lead.Create()
+//    lead.Name = "test"
+//    id, err := api.Lead.Add(lead)
 func (l Ld) Add(ld *lead) (int, error) {
 	data := map[string]interface{}{}
 	data["name"] = ld.Name
@@ -119,6 +161,14 @@ func (l Ld) Add(ld *lead) (int, error) {
 	return newLead.Embedded.Items[0].Id, nil
 }
 
+// Note:
+//    Id is required
+//
+// Example:
+//	   api := amocrm.NewAmo("login", "key", "domain")
+//	   lead, _ := api.Lead.Id(123456)
+//	   lead.Name = "test"
+//	   _ = api.Lead.Update(lead)
 func (l Ld) Update(ld *lead) error {
 	data := map[string]interface{}{}
 	data["id"] = ld.Id

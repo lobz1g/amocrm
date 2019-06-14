@@ -13,7 +13,7 @@ type (
 )
 
 func (r request) Get(address string) ([]byte, error) {
-	resp, err := client.Client.Get(getUrl(client.Cfg.Domain, address))
+	resp, err := client.Client.Get(getUrl(address))
 	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (r request) Get(address string) ([]byte, error) {
 }
 
 func (r request) Post(address string, data []byte) ([]byte, error) {
-	req, err := http.NewRequest("POST", getUrl(client.Cfg.Domain, address), bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", getUrl(address), bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}

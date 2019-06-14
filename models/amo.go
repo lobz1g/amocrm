@@ -51,7 +51,7 @@ func (c *amoSettings) open() error {
 	}
 
 	time.Sleep(delay)
-	resp, err := c.Client.PostForm(getUrl(c.Cfg.Domain, "/private/api/auth.php?type=json"), values)
+	resp, err := c.Client.PostForm(getUrl(authUrl), values)
 	if err != nil {
 		return err
 	}
