@@ -1,5 +1,7 @@
 # AmoCRM
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/lobz1g/amocrm)](https://goreportcard.com/report/github.com/lobz1g/amocrm)
+
 Клиент для работы с api AmoCRM
 
 ## Установка
