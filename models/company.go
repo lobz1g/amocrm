@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"strconv"
 )
 
 type (
@@ -37,19 +36,28 @@ type (
 	}
 )
 
+// Method creates empty struct
 func (c Cmpn) Create() *company {
 	return &company{}
 }
 
+// Method gets all companies from API AmoCRM
+//
+// Example
+//    api := amocrm.NewAmo("login", "key", "domain")
+//    allCompanies, _ := api.Company.All()
 func (c Cmpn) All() ([]*company, error) {
 	companies := allCompanies{}
+	// API returns only 500 rows per request
+	// this loop count necessary offset and request data again
 	for i := 0; ; i++ {
 		var tmpCompanies allCompanies
-		resultJson, err := c.request.Get(companyUrl + "?limit_rows=" + strconv.Itoa(limit) + "&limit_offset=" + strconv.Itoa(i*limit))
+		resultJson, err := c.request.Get(constructUrlWithOffset(companyUrl, i))
 		if err != nil {
 			return nil, err
 		}
 		json.Unmarshal(resultJson, &tmpCompanies)
+		// sets current data after request to general slice
 		companies.Embedded.Items = append(companies.Embedded.Items, tmpCompanies.Embedded.Items...)
 		if len(tmpCompanies.Embedded.Items) < 500 {
 			break
@@ -59,6 +67,34 @@ func (c Cmpn) All() ([]*company, error) {
 	return companies.Embedded.Items, nil
 }
 
+// Method gets all companies by responsible from API AmoCRM
+//
+// Example
+//    api := amocrm.NewAmo("login", "key", "domain")
+//    allCompaniesByResponsible, _ := api.Company.Responsible(12345)
+func (c Cmpn) Responsible(id int) ([]*company, error) {
+	companies := allCompanies{}
+	// API returns only 500 rows per request
+	// this loop count necessary offset and request data again
+	for i := 0; ; i++ {
+		var tmpCompanies allCompanies
+		url := constructUrlWithResponsible(companyUrl, id)
+		resultJson, err := c.request.Get(constructUrlWithOffset(url, i))
+		if err != nil {
+			return nil, err
+		}
+		json.Unmarshal(resultJson, &tmpCompanies)
+		// sets current data after request to general slice
+		companies.Embedded.Items = append(companies.Embedded.Items, tmpCompanies.Embedded.Items...)
+		if len(tmpCompanies.Embedded.Items) < 500 {
+			break
+		}
+	}
+
+	return companies.Embedded.Items, nil
+}
+
+// Method gets only one row by ID
 func (c Cmpn) Id(id int) (*company, error) {
 	var companies allCompanies
 	url := constructUrlWithId(companyUrl, id)
@@ -70,6 +106,15 @@ func (c Cmpn) Id(id int) (*company, error) {
 	return companies.Embedded.Items[0], nil
 }
 
+// Note:
+//    Field `Name` is required
+//    Return id of new company
+//
+// Example:
+//    api := amocrm.NewAmo("login", "key", "domain")
+//    comp := api.Company.Create()
+//    comp.Name = "test"
+//    id, err := api.Company.Add(comp)
 func (c Cmpn) Add(cmpn *company) (int, error) {
 	data := map[string]interface{}{}
 	data["name"] = cmpn.Name
@@ -101,10 +146,19 @@ func (c Cmpn) Add(cmpn *company) (int, error) {
 	return newCompany.Embedded.Items[0].Id, nil
 }
 
+// Note:
+//    Id is required
+//
+// Example:
+//	   api := amocrm.NewAmo("login", "key", "domain")
+//	   comp, _ := api.Company.Id(123456)
+//	   comp.Name = "test"
+//	   _ = api.Company.Update(comp)
 func (c Cmpn) Update(cmpn *company) error {
 	data := map[string]interface{}{}
 	data["id"] = cmpn.Id
 	data["name"] = cmpn.Name
+	// UpdateAt must be more then current value
 	data["updated_at"] = cmpn.UpdatedAt + 1
 	data["responsible_user_id"] = cmpn.ResponsibleUserId
 	data["custom_fields"] = cmpn.CustomFields
@@ -115,6 +169,7 @@ func (c Cmpn) Update(cmpn *company) error {
 	if len(cmpn.Contacts.Id) != 0 {
 		data["contacts_id"] = getStrFromArr(cmpn.Contacts.Id)
 	}
+	// TODO: need add unlinking
 
 	fullData := map[string][]interface{}{"update": {data}}
 	jsonData, _ := json.Marshal(fullData)

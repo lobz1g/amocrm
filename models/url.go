@@ -2,6 +2,7 @@ package models
 
 import (
 	"strconv"
+	"strings"
 )
 
 const accountUrl = "/api/v2/account?with=users,pipelines,groups,note_types,task_types,custom_fields"
@@ -12,6 +13,21 @@ const noteUrl = "/api/v2/notes"
 
 func constructUrlWithId(url string, id int) string {
 	return url + "?id=" + strconv.Itoa(id)
+}
+
+func constructUrlWithResponsible(url string, id int) string {
+	return url + "?responsible_user_id=" + strconv.Itoa(id)
+}
+
+func constructUrlWithOffset(url string, rows int) string {
+	var newUrl string
+	if strings.Contains(url, "?") {
+		newUrl = url + "&"
+	} else {
+		newUrl = url + "?"
+	}
+	newUrl += "limit_rows=" + strconv.Itoa(limit) + "&limit_offset=" + strconv.Itoa(rows*limit)
+	return newUrl
 }
 
 func getUrl(domain string, url string) string {
